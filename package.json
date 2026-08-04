@@ -4,7 +4,8 @@
   "description": "A simple Task API built with Express.js",
   "main": "index.js",
   "scripts": {
-    "start": "node index.js"
+    "start": "node index.js",
+    "dev": "node index.js"
   },
   "dependencies": {
     "express": "^4.19.2",
