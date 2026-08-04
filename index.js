@@ -77,6 +77,22 @@ app.delete('/tasks/:id', (req, res) => {
   res.status(204).send();
 });
 
-app.listen(3000, () => {
-  console.log('Server running on http://localhost:3000');
-});
+const port = Number(process.env.PORT) || 3000;
+
+const startServer = (currentPort) => {
+  const server = app.listen(currentPort, () => {
+    console.log(`Server running on http://localhost:${currentPort}`);
+  });
+
+  server.on('error', (err) => {
+    if (err.code === 'EADDRINUSE' && currentPort === port) {
+      const fallbackPort = currentPort + 1;
+      console.log(`Port ${currentPort} is busy. Trying ${fallbackPort} instead.`);
+      startServer(fallbackPort);
+    } else {
+      throw err;
+    }
+  });
+};
+
+startServer(port);
