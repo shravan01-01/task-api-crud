@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Task API UI</title>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="text/babel">
+      const { useEffect, useState } = React;
+
+      function App() {
+        const [tasks, setTasks] = useState([]);
+        const [title, setTitle] = useState('');
+        const [loading, setLoading] = useState(true);
+
+        const loadTasks = async () => {
+          const res = await fetch('/tasks');
+          const data = await res.json();
+          setTasks(data);
+          setLoading(false);
+        };
+
+        useEffect(() => {
+          loadTasks();
+        }, []);
+
+        const addTask = async (e) => {
+          e.preventDefault();
+          if (!title.trim()) return;
+          const res = await fetch('/tasks', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ title })
+          });
+          const newTask = await res.json();
+          setTasks([...tasks, newTask]);
+          setTitle('');
+        };
+
+        const toggleTask = async (task) => {
+          const res = await fetch(`/tasks/${task.id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ title: task.title, done: !task.done })
+          });
+          const updated = await res.json();
+          setTasks(tasks.map((item) => (item.id === updated.id ? updated : item)));
+        };
+
+        const deleteTask = async (id) => {
+          await fetch(`/tasks/${id}`, { method: 'DELETE' });
+          setTasks(tasks.filter((task) => task.id !== id));
+        };
+
+        return (
+          <div style={{ fontFamily: 'Arial', maxWidth: '600px', margin: '40px auto' }}>
+            <h1>Task List</h1>
+            <form onSubmit={addTask}>
+              <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="New task" />
+              <button type="submit">Add</button>
+            </form>
+            {loading ? <p>Loading...</p> : (
+              <ul>
+                {tasks.map((task) => (
+                  <li key={task.id} style={{ marginBottom: '10px' }}>
+                    <span onClick={() => toggleTask(task)} style={{ cursor: 'pointer', textDecoration: task.done ? 'line-through' : 'none' }}>
+                      {task.title}
+                    </span>
+                    <button onClick={() => deleteTask(task.id)} style={{ marginLeft: '10px' }}>Delete</button>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        );
+      }
+
+      ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+    </script>
+  </body>
+</html>

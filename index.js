@@ -1,10 +1,9 @@
 const express = require('express');
-const swaggerUi = require('swagger-ui-express');
-const swaggerDocument = require('./openapi.json');
+const path = require('path');
 
 const app = express();
 app.use(express.json());
-app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
+app.use(express.static(path.join(__dirname, 'public')));
 
 let tasks = [
   { id: 1, title: 'Learn Node.js', done: false },
@@ -14,7 +13,7 @@ let tasks = [
 let nextId = 4;
 
 app.get('/', (req, res) => {
-  res.json({ name: 'Task API', version: '1.0', endpoints: ['/tasks'] });
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
 app.get('/health', (req, res) => {
