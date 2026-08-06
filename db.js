@@ -1,37 +1,23 @@
-const sqlite3 = require('sqlite3').verbose();
+const Database = require('better-sqlite3');
 const path = require('path');
 
 const dbPath = path.join(__dirname, 'tasks.db');
-const db = new sqlite3.Database(dbPath, (err) => {
-  if (err) {
-    console.error('Failed to open SQLite database', err);
-    throw err;
-  }
-});
+const db = new Database(dbPath);
 
-const run = (sql, params = []) =>
-  new Promise((resolve, reject) => {
-    db.run(sql, params, function (err) {
-      if (err) return reject(err);
-      resolve(this);
-    });
-  });
+const run = (sql, params = []) => {
+  const stmt = db.prepare(sql);
+  return Promise.resolve(stmt.run(params));
+};
 
-const get = (sql, params = []) =>
-  new Promise((resolve, reject) => {
-    db.get(sql, params, (err, row) => {
-      if (err) return reject(err);
-      resolve(row);
-    });
-  });
+const get = (sql, params = []) => {
+  const stmt = db.prepare(sql);
+  return Promise.resolve(stmt.get(params));
+};
 
-const all = (sql, params = []) =>
-  new Promise((resolve, reject) => {
-    db.all(sql, params, (err, rows) => {
-      if (err) return reject(err);
-      resolve(rows);
-    });
-  });
+const all = (sql, params = []) => {
+  const stmt = db.prepare(sql);
+  return Promise.resolve(stmt.all(params));
+};
 
 const initializeDatabase = async () => {
   await run(`
@@ -68,7 +54,7 @@ const getTaskById = async (id) => {
 
 const createTask = async (title) => {
   const result = await run('INSERT INTO tasks (title, done) VALUES (?, ?)', [title, 0]);
-  return { id: result.lastID, title, done: false };
+  return { id: result.lastInsertRowid, title, done: false };
 };
 
 const updateTask = async (id, title, done) => {
