@@ -54,17 +54,23 @@ const getTaskById = async (id) => {
 
 const createTask = async (title) => {
   const result = await run('INSERT INTO tasks (title, done) VALUES (?, ?)', [title, 0]);
-  return { id: result.lastInsertRowid, title, done: false };
+  const task = { id: result.lastInsertRowid, title, done: false };
+  console.log(`Database action: created task ${task.id} (${task.title})`);
+  return task;
 };
 
 const updateTask = async (id, title, done) => {
   const result = await run('UPDATE tasks SET title = ?, done = ? WHERE id = ?', [title, done ? 1 : 0, id]);
   if (result.changes === 0) return null;
+  console.log(`Database action: updated task ${id} (${title}, done=${done})`);
   return { id, title, done };
 };
 
 const deleteTask = async (id) => {
   const result = await run('DELETE FROM tasks WHERE id = ?', [id]);
+  if (result.changes > 0) {
+    console.log(`Database action: deleted task ${id}`);
+  }
   return result.changes > 0;
 };
 
